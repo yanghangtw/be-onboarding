@@ -1,0 +1,112 @@
+project_name: core-system
+
+containers:
+  dev-database:
+    image: postgres:15
+    ports:
+      - local: 5432
+        container: 5432
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev # pragma: allowlist secret
+      POSTGRES_DB: dev
+    health_check:
+      command: pg_isready -d dev
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - type: cache
+        name: db-data
+        container: /var/lib/postgresql/data
+
+  test-database:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test # pragma: allowlist secret
+      POSTGRES_DB: test
+    health_check:
+      command: pg_isready -d test
+      interval: 2s
+      timeout: 1s
+      retries: 10
+      start_period: 10s
+
+  # copy from the official java bundle: https://github.com/batect/java-bundle
+  # in order to control jdk version explicitly
+  java-build-env:
+    build_directory: .batect/java-build-env
+    volumes:
+      - local: .
+        container: /code
+        options: cached
+      - type: cache
+        name: gradle-cache
+        container: /home/container-user/.gradle
+    working_directory: /code
+    environment:
+      GRADLE_OPTS: -Dorg.gradle.daemon=false
+    run_as_current_user:
+      enabled: true
+      home_directory: /home/container-user
+
+tasks:
+  test:
+    description: Run testing code
+    group: Testing tasks
+    dependencies:
+      - test-database
+    run:
+      container: java-build-env
+      command: ./gradlew test
+      environment:
+        DB_URL: jdbc:postgresql://test-database:5432/test
+        DB_USER: test
+        DB_PASSWORD: test # pragma: allowlist secret
+
+  compile:
+    description: Compile the code
+    group: Build tasks
+    run:
+      container: java-build-env
+      command: ./gradlew compileJava
+
+  local-start:
+    description: Start the application on local
+    group: Build tasks
+    dependencies:
+      - dev-database
+    run:
+      container: java-build-env
+      command: ./gradlew bootRun
+      environment:
+        DB_URL: jdbc:postgresql://dev-database:5432/dev
+        DB_USER: dev
+        DB_PASSWORD: dev # pragma: allowlist secret
+        FLYWAY_ENABLED: "true"
+      ports:
+        - local: 8080
+          container: 8080
+
+  code-style:
+    description: Run code style checks
+    group: Testing tasks
+    run:
+      container: java-build-env
+      command: ./gradlew spotlessCheck
+
+  secret-scan:
+    description: Scan secrets inside code
+    group: Testing tasks
+    run:
+      container: java-build-env
+      command: pre-commit run detect-secrets --all-files
+
+  dependency-scan:
+    description: Scan the dependencies
+    group: Testing tasks
+    run:
+      container: java-build-env
+      command: ./gradlew dependencyCheckAnalyze --info
