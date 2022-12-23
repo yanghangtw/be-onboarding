@@ -52,6 +52,17 @@ containers:
       enabled: true
       home_directory: /home/container-user
 
+  osv-scanner:
+    build_directory: .batect/osv-scanner
+    volumes:
+      - local: .
+        container: /code
+        options: cached
+    working_directory: /code
+    run_as_current_user:
+      enabled: true
+      home_directory: /home/container-user
+
 tasks:
   test:
     description: Run testing code
@@ -110,3 +121,19 @@ tasks:
     run:
       container: java-build-env
       command: ./gradlew dependencyCheckAnalyze --info
+
+  generate-lockfile:
+    description: Generate the lockfiles used to scan
+    group: Build tasks
+    run:
+      container: java-build-env
+      command: ./gradlew dependencies --write-locks
+
+  osv-scan:
+    description: Scan vulnerabilities
+    group: Testing tasks
+    prerequisites:
+      - generate-lockfile
+    run:
+      container: osv-scanner
+      command: osv-scanner -r .

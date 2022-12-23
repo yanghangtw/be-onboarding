@@ -38,3 +38,6 @@ out/
 
 ### Batect ###
 .batect/caches
+
+### gradle lockfile, for osv scanning only ###
+*.lockfile
