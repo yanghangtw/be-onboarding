@@ -1,0 +1,19 @@
+#!/bin/sh
+
+stagedFiles=$(git diff --staged --name-only)
+
+function format_code() {
+    echo "Running spotlessApply. Formatting code..."
+    ./gradlew -q spotlessApply
+
+    for file in $stagedFiles; do
+      if test -f "$file"; then
+        git add $file
+      fi
+    done
+}
+
+echo "Checking code style with spotlessCheck"
+./gradlew -q spotlessCheck
+
+[ $? -eq 0 ] || format_code

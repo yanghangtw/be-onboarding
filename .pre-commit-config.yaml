@@ -1,0 +1,14 @@
+default_stages:
+  - commit
+repos:
+  - repo: local
+    hooks:
+      - id: spotless-apply
+        name: Spotless Apply
+        entry: bash ./script/spotless-pre-commit
+        language: system
+        verbose: true
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
