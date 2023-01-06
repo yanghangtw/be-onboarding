@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HelloRepo extends JpaRepository<MessagePo, String> {
 
-  List<MessagePo> findByPersonOrderByMessageAsc(String person);
+  List<String> findByPersonOrderByMessageAsc(String person);
 }

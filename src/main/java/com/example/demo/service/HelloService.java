@@ -2,6 +2,7 @@
 package com.example.demo.service;
 
 import com.example.demo.repo.HelloRepo;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,10 @@ public class HelloService {
 
   public Optional<String> getMessages(String person) {
     var messages = helloRepo.findByPersonOrderByMessageAsc(person);
-    return messages.isEmpty() ? Optional.empty() : Optional.of("TODO");
+    return messages.isEmpty() ? Optional.empty() : Optional.of(combineMessages(messages));
+  }
+
+  private String combineMessages(List<String> messages) {
+    return String.join(" ", messages);
   }
 }

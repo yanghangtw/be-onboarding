@@ -3,11 +3,11 @@ package com.example.demo.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.example.demo.repo.HelloRepo;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,9 +21,21 @@ class HelloServiceTest {
 
   @InjectMocks private HelloService helloService;
 
+  @AfterEach
+  void tearDown() {
+    reset(helloRepo);
+  }
+
   @Test
   void shouldReturnCombinedMessage__givenMoreThanOneMessageFound() {
-    // TODO
+    when(helloRepo.findByPersonOrderByMessageAsc(anyString()))
+        .thenReturn(List.of("Hello", "World"));
+
+    var message = helloService.getMessages("Smith");
+
+    assertFalse(message.isEmpty());
+    assertEquals(message.get(), "Hello World");
+    verify(helloRepo).findByPersonOrderByMessageAsc("Smith");
   }
 
   @Test
