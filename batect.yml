@@ -1,4 +1,4 @@
-project_name: core-system
+project_name: be-onboarding
 
 containers:
   dev-database:
