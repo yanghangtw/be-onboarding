@@ -3,7 +3,7 @@ package com.example.demo.web;
 
 import com.example.demo.service.HelloService;
 import com.example.demo.web.dto.GetMessageResponse;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/v1/hello")
-@AllArgsConstructor(onConstructor = @__(@Autowired))
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class HelloResource {
 
-  private HelloService helloService;
+  private final HelloService helloService;
 
   @GetMapping
   public ResponseEntity<GetMessageResponse> getMessage(
